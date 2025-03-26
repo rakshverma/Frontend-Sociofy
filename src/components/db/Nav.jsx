@@ -314,8 +314,7 @@ function Nav() {
             </Link>
             
             <div className="flex items-center space-x-3 pl-2 border-l border-gray-300">
-              <Link 
-                to="/settings/:email" 
+              <Link to={userEmail ? `/settings/${userEmail}` : "/"
                 className="text-gray-700 hover:text-blue-600 transition-colors"
               >
                 <FaCog className="h-5 w-5" />
