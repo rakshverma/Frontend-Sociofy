@@ -32,7 +32,11 @@ const Settings = () => {
         }
         
         const email = localStorage.getItem('email');
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/${email}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user/${email}`, {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
         
         setUser({
           name: response.data.name,
