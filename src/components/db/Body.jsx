@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Add this import
 import "boxicons/css/boxicons.min.css";
 function Body() {
+    const navigate = useNavigate(); // Initialize the navigate function
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploadedPosts, setUploadedPosts] = useState([]);
