@@ -85,7 +85,7 @@ const Settings = () => {
     setError('');
     
     try {
-      const response = await axios.put('http://localhost:5000/update-profile', {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/update-profile`, {
         email: user.email,
         name: user.name,
         gender: user.gender,
@@ -109,7 +109,7 @@ const Settings = () => {
     }
     
     try {
-      const response = await axios.put('http://localhost:5000/update-password', {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/update-password`, {
         email: user.email,
         password: password
       });
@@ -129,7 +129,7 @@ const Settings = () => {
     }
     
     try {
-      await axios.delete('http://localhost:5000/delete-account', {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/delete-account`, {
         data: { email: user.email }
       });
       
