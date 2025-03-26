@@ -7,8 +7,7 @@ import ChatRoom from "./components/Chatroom";
 import Profile from "./components/Profile";
 import SearchResults from "./pages/SearchResults";
 import UserProfile from "./pages/UserProfile";
-
-// Import CSS for search functionality
+import NotFound from "./pages/NotFound"; 
 
 const PrivateRoute = ({ element }) => {
   const token = localStorage.getItem("token");
@@ -30,6 +29,8 @@ function App() {
         {/* New search-related routes */}
         <Route path="/search-results" element={<PrivateRoute element={<SearchResults />} />} />
         <Route path="/user-profile/:email" element={<PrivateRoute element={<UserProfile />} />} />
+                <Route path="*" element={<NotFound />} />
+
       </Routes>
     </Router>
   );
