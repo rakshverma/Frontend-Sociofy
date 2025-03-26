@@ -25,7 +25,6 @@ function Signup() {
     }
 
     try {
-      console.log(`${import.meta.env.VITE_API_URL}`);
 
       await axios.post(`${import.meta.env.VITE_API_URL}/signup`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
