@@ -60,7 +60,7 @@ function Body() {
   // Add this function to handle navigation to a friend's profile
 const navigateToFriendProfile = (friendEmail) => {
   // You can use window.location.href to navigate to the friend's profile page
-  window.location.href = `/user-profile/${friendEmail}`;
+ navigate(`/user-profile/${email}`);
   
   // Alternatively, if you're using React Router, you could use history.push:
   // history.push(`/user-profile/${friendEmail}`);
