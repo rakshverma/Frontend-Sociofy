@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 
-if (import.meta.env.MODE === 'production') {
+if (import.meta.env.PROD) {
   console.log = () => {};
   console.warn = () => {};
   console.error = () => {};
