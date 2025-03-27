@@ -5,6 +5,12 @@ import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    if (import.meta.env.MODE === 'production') {
+  console.log = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
+
     <App />
   </StrictMode>,
 )
