@@ -33,7 +33,7 @@ function Signup() {
       console.log(import.meta.env.VITE_API_URL);
       navigate("/");
     } catch (error) {
-      setError(error.response?.data?.message || "Signup failed");
+      setError("Signup failed");
     }
   };
 
