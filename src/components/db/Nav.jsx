@@ -232,10 +232,7 @@ function Nav() {
         
         <Link to="/chatroom" className="text-gray-700 hover:text-blue-600 transition-colors">
           <FaEnvelope className="h-5 w-5" />
-        </Link>
-        <Link to={`/settings/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
-  <FaCog className="h-5 w-5" />
-</Link>
+ 
         
         {/* Notification Bell */}
         <div className="relative" ref={notificationRef}>
