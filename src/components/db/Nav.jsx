@@ -307,18 +307,20 @@ function Nav() {
           )}
         </div>
         
-        <Link to={`/dashboard/profile/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
-          <FaUserCircle className="h-5 w-5" />
-        </Link>
-      <Link to={`/settings/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
+      <Link to={`/dashboard/profile/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
+  <FaUserCircle className="h-5 w-5" />
+</Link>
+
+<Link to={`/settings/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
   <FaCog className="h-5 w-5" />
 </Link>
-        </Link>
-        
-        <button
-          onClick={handleLogout}
-          className="text-red-500 hover:text-red-700 transition-colors ml-4"
-        >
+
+<button
+  onClick={handleLogout}
+  className="text-red-500 hover:text-red-700 transition-colors ml-4"
+>
+  <FaSignOutAlt className="h-5 w-5" />
+</button>
           <FaSignOutAlt className="h-5 w-5" />
         </button>
       </div>
