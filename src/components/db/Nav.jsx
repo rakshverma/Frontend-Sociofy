@@ -307,7 +307,7 @@ function Nav() {
           )}
         </div>
         
-      <Link to={`/dashboard/profile/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
+ <Link to={`/dashboard/profile/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
   <FaUserCircle className="h-5 w-5" />
 </Link>
 
@@ -321,8 +321,7 @@ function Nav() {
 >
   <FaSignOutAlt className="h-5 w-5" />
 </button>
-          <FaSignOutAlt className="h-5 w-5" />
-        </button>
+
       </div>
     </nav>
   );
