@@ -260,54 +260,7 @@ function Body() {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
       {/* Navbar */}
-      <header className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} ${isSticky ? 'shadow-md' : ''}`}>
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="mr-4 text-2xl md:hidden focus:outline-none"
-              aria-label="Toggle sidebar"
-            >
-              <i className={`bx ${sidebarOpen ? 'bx-x' : 'bx-menu'}`}></i>
-            </button>
-            <div className="flex items-center font-bold text-xl">
-              <i className="bx bx-network-chart text-blue-500 text-2xl mr-2"></i>
-              <span className="hidden sm:inline">SocialConnect</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setDarkMode(!darkMode)} 
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${darkMode ? 'bg-gray-700 text-yellow-300' : 'bg-gray-100 text-gray-600'}`}
-              aria-label="Toggle dark mode"
-            >
-              <i className={`bx ${darkMode ? 'bx-sun' : 'bx-moon'} text-xl`}></i>
-            </button>
-            
-            <button 
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-              aria-label="Notifications"
-            >
-              <i className="bx bx-bell text-xl"></i>
-            </button>
-            
-            <div className="relative">
-              {userProfile?.profilePicture ? (
-                <img
-                  src={`data:image/png;base64,${userProfile.profilePicture}`}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-blue-500 cursor-pointer object-cover"
-                />
-              ) : (
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                  <i className={`bx bx-user text-xl ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}></i>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+
 
       {/* Sidebar */}
       <aside 
