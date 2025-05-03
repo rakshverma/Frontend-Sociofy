@@ -24,6 +24,8 @@ function Nav() {
     navigate("/", { replace: true });
   };
 
+  // In a button or other event handler
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
@@ -232,7 +234,7 @@ function Nav() {
         
         <Link to="/chatroom" className="text-gray-700 hover:text-blue-600 transition-colors">
           <FaEnvelope className="h-5 w-5" />
- 
+          </Link>
         
         {/* Notification Bell */}
         <div className="relative" ref={notificationRef}>
@@ -311,10 +313,10 @@ function Nav() {
   <FaUserCircle className="h-5 w-5" />
 </Link>
 
-
 <Link to={`/settings/${userEmail}`} className="text-gray-700 hover:text-blue-600 transition-colors">
-   <FaCog className="h-5 w-5" />
- </Link>
+  <FaCog className="h-5 w-5" />
+</Link>
+
 <button
   onClick={handleLogout}
   className="text-red-500 hover:text-red-700 transition-colors ml-4"
