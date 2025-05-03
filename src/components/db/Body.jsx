@@ -127,6 +127,7 @@ function Body() {
 
   const handleLike = async (postId) => {
     try {
+      
       await axios.post(`${import.meta.env.VITE_API_URL}/like/${postId}`, { email });
       fetchPosts();
     } catch (error) {
@@ -417,6 +418,14 @@ function Body() {
                       <i className="bx bx-comment text-xl"></i>
                       <span>{post.comments?.length || 0}</span>
                     </button>
+                                        {post.userId === email && (
+                      <button 
+                        onClick={() => handleDelete(post._id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <i className="bx bx-trash text-xl"></i>
+                      </button>
+                    )}
                   </div>
                   
                   {/* Comments Preview */}
