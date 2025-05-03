@@ -63,6 +63,7 @@ function Body() {
 
   const navigateToFriendProfile = (friendEmail) => {
     navigate(`/user-profile/${friendEmail}`);
+    setShowMobileMenu(false);
   };
 
   const handleFileChange = (event) => {
@@ -175,29 +176,26 @@ function Body() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-40 p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">SocialApp</h1>
-        <button 
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-          className="text-gray-600 focus:outline-none"
-        >
-          <i className={`bx ${showMobileMenu ? 'bx-x' : 'bx-menu'} text-3xl`}></i>
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Mobile Menu Toggle Button - Positioned in body */}
+      <button 
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="lg:hidden fixed left-4 top-20 z-30 bg-white p-2 rounded-full shadow-md text-blue-600"
+      >
+        <i className={`bx ${showMobileMenu ? 'bx-x' : 'bx-menu'} text-2xl`}></i>
+      </button>
 
-      <div className="pt-16 lg:pt-0 flex flex-col lg:flex-row min-h-screen">
+      <div className="pt-4 lg:pt-0 flex flex-col lg:flex-row min-h-screen">
         {/* Mobile Menu Overlay */}
         {showMobileMenu && (
           <div 
-            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
             onClick={() => setShowMobileMenu(false)}
           ></div>
         )}
 
         {/* Sidebar - Now responsive */}
-        <aside className={`fixed lg:static lg:w-72 bg-white shadow-lg p-6 h-full lg:h-auto z-40 transform transition-transform duration-300 ease-in-out ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <aside className={`fixed lg:static lg:w-72 bg-white shadow-lg p-6 h-full lg:h-auto z-20 transform transition-transform duration-300 ease-in-out ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
           <div className="text-center">
             {userProfile?.profilePicture ? (
               <img
@@ -224,10 +222,7 @@ function Body() {
                   <div 
                     key={friend._id} 
                     className="flex items-center py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
-                    onClick={() => {
-                      navigateToFriendProfile(friend.email);
-                      setShowMobileMenu(false);
-                    }}
+                    onClick={() => navigateToFriendProfile(friend.email)}
                   >
                     {friend.profilePicture ? (
                       <img
@@ -254,9 +249,9 @@ function Body() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-6 lg:ml-72">
           {/* Post Creation Card */}
-          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+          <div className="bg-white p-6 rounded-2xl shadow-md mb-6 border border-gray-100">
             <form onSubmit={handleUpload}>
               <div className="flex items-start space-x-3">
                 {userProfile?.profilePicture ? (
@@ -277,7 +272,7 @@ function Body() {
                     placeholder="What's on your mind?"
                     value={postText}
                     onChange={(e) => setPostText(e.target.value)}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
                   />
                 </div>
               </div>
@@ -287,7 +282,7 @@ function Body() {
                   <img 
                     src={preview} 
                     alt="Preview" 
-                    className="rounded-lg max-w-full h-auto max-h-80 object-contain cursor-pointer" 
+                    className="rounded-xl max-w-full h-auto max-h-80 object-contain cursor-pointer shadow-sm" 
                     onClick={() => setModalImage(preview)}
                   />
                   <button
@@ -305,7 +300,7 @@ function Body() {
               
               <div className="mt-3 flex justify-between items-center">
                 <div>
-                  <label className="inline-flex items-center px-3 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
+                  <label className="inline-flex items-center px-3 py-2 bg-gray-100 rounded-xl cursor-pointer hover:bg-gray-200 transition-colors">
                     <i className="bx bx-image text-blue-500 mr-2"></i>
                     <span className="text-gray-700">Photo</span>
                     <input 
@@ -318,7 +313,7 @@ function Body() {
                 </div>
                 <button 
                   type="submit" 
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className={`px-4 py-2 rounded-xl transition-colors ${!postText && !selectedFile ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                   disabled={!postText && !selectedFile}
                 >
                   Post
@@ -326,7 +321,7 @@ function Body() {
               </div>
               
               {uploadError && (
-                <div className="mt-2 text-red-500 text-sm bg-red-50 p-2 rounded">
+                <div className="mt-2 text-red-500 text-sm bg-red-50 p-2 rounded-lg">
                   {uploadError}
                 </div>
               )}
@@ -342,7 +337,7 @@ function Body() {
             ) : null}
             
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4">
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
                 <div className="flex">
                   <div className="flex-shrink-0">
                     <i className="bx bx-error text-red-500 text-xl"></i>
@@ -355,13 +350,13 @@ function Body() {
             )}
             
             {uploadedPosts.length === 0 && !loading ? (
-              <div className="text-center py-10">
+              <div className="text-center py-10 bg-white rounded-2xl shadow-sm">
                 <i className="bx bx-news text-4xl text-gray-400 mb-2"></i>
                 <p className="text-gray-500">No posts yet. Create your first post!</p>
               </div>
             ) : (
               uploadedPosts.map((post) => (
-                <div key={post._id} className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div key={post._id} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
                   {/* Post Header */}
                   <div className="p-4 flex items-center space-x-3 border-b">
                     {post.userProfilePicture ? (
@@ -375,12 +370,20 @@ function Body() {
                         <i className="bx bx-user text-gray-400"></i>
                       </div>
                     )}
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">{post.userName}</h3>
                       <p className="text-xs text-gray-500">
                         {new Date(post.createdAt).toLocaleString()}
                       </p>
                     </div>
+                    {post.userId === email && (
+                      <button 
+                        onClick={() => handleDelete(post._id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <i className="bx bx-trash text-xl"></i>
+                      </button>
+                    )}
                   </div>
                   
                   {/* Post Content */}
@@ -391,7 +394,7 @@ function Body() {
                         <img 
                           src={`data:image/png;base64,${post.image}`} 
                           alt="Post" 
-                          className="w-full h-auto max-h-96 object-contain cursor-pointer" 
+                          className="w-full h-auto max-h-96 object-contain cursor-pointer shadow-sm" 
                           onClick={() => setModalImage(`data:image/png;base64,${post.image}`)}
                         />
                       </div>
@@ -402,26 +405,18 @@ function Body() {
                   <div className="px-4 py-2 border-t flex justify-between">
                     <button 
                       onClick={() => handleLike(post._id)}
-                      className={`flex items-center space-x-1 px-3 py-1 rounded-full ${post.likes.includes(email) ? 'text-blue-500' : 'text-gray-500'} hover:bg-gray-100`}
+                      className={`flex items-center space-x-1 px-3 py-1 rounded-full ${post.likes.includes(email) ? 'text-blue-500' : 'text-gray-500'} hover:bg-gray-100 transition-colors`}
                     >
-                      <i className="bx bx-like"></i>
+                      <i className={`bx ${post.likes.includes(email) ? 'bxs-like' : 'bx-like'} text-xl`}></i>
                       <span>{post.likes.length}</span>
                     </button>
                     <button 
                       onClick={() => setShowCommentsForPost(post._id)}
-                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100"
+                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
                     >
-                      <i className="bx bx-comment"></i>
+                      <i className="bx bx-comment text-xl"></i>
                       <span>{post.comments?.length || 0}</span>
                     </button>
-                    {post.userId === email && (
-                      <button 
-                        onClick={() => handleDelete(post._id)}
-                        className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100 hover:text-red-500"
-                      >
-                        <i className="bx bx-trash"></i>
-                      </button>
-                    )}
                   </div>
                   
                   {/* Comments Preview */}
@@ -436,7 +431,7 @@ function Body() {
                       
                       <div className="space-y-2">
                         {getRecentComments(post.comments, 2).map((comment, index) => (
-                          <div key={index} className="text-sm text-gray-700 bg-white p-2 rounded-lg">
+                          <div key={index} className="text-sm text-gray-700 bg-white p-2 rounded-lg shadow-xs">
                             <strong className="text-gray-800">{getUserName(comment.userId)}</strong>: {comment.commentText}
                           </div>
                         ))}
@@ -460,14 +455,14 @@ function Body() {
                             handleComment(post._id);
                           }
                         }} 
-                        className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                        className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" 
                       />
                       <button 
                         onClick={() => handleComment(post._id)}
                         disabled={!comments[post._id]?.trim()}
-                        className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50"
+                        className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50 transition-colors"
                       >
-                        <i className="bx bx-send"></i>
+                        <i className="bx bx-send text-xl"></i>
                       </button>
                     </div>
                   </div>
@@ -488,7 +483,7 @@ function Body() {
             <img 
               src={modalImage} 
               alt="Enlarged view" 
-              className="max-w-full max-h-[90vh] object-contain mx-auto"
+              className="max-w-full max-h-[90vh] object-contain mx-auto rounded-lg shadow-xl"
               onClick={(e) => e.stopPropagation()}
             />
             <button 
@@ -508,13 +503,13 @@ function Body() {
           onClick={() => setShowCommentsForPost(null)}
         >
           <div 
-            className="bg-white rounded-xl max-w-md w-full max-h-[90vh] flex flex-col"
+            className="bg-white rounded-xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
               <h3 className="text-lg font-semibold">Comments</h3>
               <button 
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="text-gray-500 hover:text-gray-700 p-1 transition-colors"
                 onClick={() => setShowCommentsForPost(null)}
               >
                 <i className="bx bx-x text-2xl"></i>
@@ -562,14 +557,14 @@ function Body() {
                       handleComment(showCommentsForPost);
                     }
                   }} 
-                  className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" 
                 />
                 <button 
                   onClick={() => handleComment(showCommentsForPost)}
                   disabled={!comments[showCommentsForPost]?.trim()}
-                  className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50"
+                  className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50 transition-colors"
                 >
-                  <i className="bx bx-send"></i>
+                  <i className="bx bx-send text-xl"></i>
                 </button>
               </div>
             </div>
