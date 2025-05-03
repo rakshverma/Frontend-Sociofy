@@ -39,7 +39,143 @@ function Body() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [email]);
 
-  // ... (keep all your existing functions unchanged, just the UI changes below)
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user/${email}`);
+      setUserProfile(response.data);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setError("Failed to load user profile.");
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts/${email}`);
+      setUploadedPosts(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setError("Failed to load posts.");
+      setLoading(false);
+    }
+  };
+
+  const fetchFriends = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${email}`);
+      setFriends(response.data);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+    }
+  };
+
+  const navigateToFriendProfile = (friendEmail) => {
+    navigate(`/user-profile/${friendEmail}`);
+    setShowSidebar(false);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Only image files are allowed.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("File size must be under 5MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadError("");
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpload = async (event) => {
+    event.preventDefault();
+    
+    if (!postText && !selectedFile) {
+      setUploadError("Please enter some text or upload an image.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("text", postText);
+    formData.append("email", email);
+    if (selectedFile) formData.append("image", selectedFile);
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Post uploaded successfully!");
+      setSelectedFile(null);
+      setPreview(null);
+      setPostText("");
+      setUploadError("");
+      fetchPosts();
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadError("Failed to upload post. Try again.");
+    }
+  };
+
+  const getUserName = (userId) => {
+    const post = uploadedPosts.find(post => post.userId.toString() === userId.toString());
+    return post ? post.userName : "Unknown User";
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/like/${postId}`, { email });
+      fetchPosts();
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
+  };
+
+  const handleComment = async (postId) => {
+    const comment = comments[postId];
+    if (!comment || !comment.trim()) return;
+    
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/comment/${postId}`, { email, comment });
+      setComments({
+        ...comments,
+        [postId]: ""
+      });
+      fetchPosts();
+    } catch (error) {
+      console.error("Error commenting on post:", error);
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/delete/${postId}`);
+      fetchPosts();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
+
+  const getRecentComments = (comments, count) => {
+    if (!comments || !comments.length) return [];
+    return [...comments]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, count);
+  };
+
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
