@@ -423,7 +423,7 @@ function Body() {
                         onClick={() => handleDelete(post._id)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
-                        <i className="bx bx-trash text-xl"></i>
+                        🗑️
                       </button>
                     )}
                   </div>
