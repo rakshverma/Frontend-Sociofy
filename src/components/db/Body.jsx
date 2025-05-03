@@ -17,7 +17,7 @@ function Body() {
   const [comments, setComments] = useState({});
   const [showCommentsForPost, setShowCommentsForPost] = useState(null);
   const [friends, setFriends] = useState([]);
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const email = localStorage.getItem("email") || "test_email";
 
@@ -61,18 +61,8 @@ function Body() {
     }
   };
 
-  const fetchFriends = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${email}`);
-      setFriends(response.data);
-    } catch (error) {
-      console.error("Error fetching friends:", error);
-    }
-  };
-
   const navigateToFriendProfile = (friendEmail) => {
     navigate(`/user-profile/${friendEmail}`);
-    setShowSidebar(false);
   };
 
   const handleFileChange = (event) => {
@@ -118,7 +108,6 @@ function Body() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Post uploaded successfully!");
       setSelectedFile(null);
       setPreview(null);
       setPostText("");
@@ -176,423 +165,417 @@ function Body() {
       .slice(0, count);
   };
 
-
+  const fetchFriends = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${email}`);
+      setFriends(response.data);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+    }
+  };
+  
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
-      {/* Mobile menu button - moved inside main content area */}
-      <div className="md:hidden fixed top-16 left-4 z-30">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-40 p-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-blue-600">SocialApp</h1>
         <button 
-          onClick={() => setShowSidebar(!showSidebar)}
-          className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          className="text-gray-600 focus:outline-none"
         >
-          <i className={`bx ${showSidebar ? 'bx-x' : 'bx-menu'} text-xl text-blue-600`}></i>
+          <i className={`bx ${showMobileMenu ? 'bx-x' : 'bx-menu'} text-3xl`}></i>
         </button>
       </div>
 
-      {/* Sidebar */}
-      <aside className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transform transition-transform duration-300 fixed md:static inset-y-0 left-0 z-20 w-64 bg-white shadow-xl p-6 overflow-y-auto`}>
-        <div className="text-center mb-8">
-          {userProfile?.profilePicture ? (
-            <img
-              src={`data:image/png;base64,${userProfile.profilePicture}`}
-              alt="Profile"
-              className="w-24 h-24 mx-auto rounded-full border-4 border-blue-500 cursor-pointer hover:border-blue-600 transition-all"
-              onClick={() => {
-                setModalImage(`data:image/png;base64,${userProfile.profilePicture}`);
-                setShowSidebar(false);
-              }}
-            />
-          ) : (
-            <div className="w-24 h-24 mx-auto rounded-full border-4 border-blue-500 flex items-center justify-center">
-              <i className="bx bx-user text-5xl text-gray-400"></i>
-            </div>
-          )}
-          <h2 className="mt-3 text-xl font-semibold text-gray-800">{userProfile?.name || "User"}</h2>
-          <p className="text-sm text-gray-500 mt-1">{email}</p>
-        </div>
-        
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <h3 className="font-semibold text-gray-700 flex items-center mb-4">
-            <i className="bx bx-group mr-2 text-blue-500 text-xl"></i> Friends
-          </h3>
+      <div className="pt-16 lg:pt-0 flex flex-col lg:flex-row min-h-screen">
+        {/* Mobile Menu Overlay */}
+        {showMobileMenu && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={() => setShowMobileMenu(false)}
+          ></div>
+        )}
+
+        {/* Sidebar - Now responsive */}
+        <aside className={`fixed lg:static lg:w-72 bg-white shadow-lg p-6 h-full lg:h-auto z-40 transform transition-transform duration-300 ease-in-out ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+          <div className="text-center">
+            {userProfile?.profilePicture ? (
+              <img
+                src={`data:image/png;base64,${userProfile.profilePicture}`}
+                alt="Profile"
+                className="w-24 h-24 mx-auto rounded-full border-4 border-blue-500 cursor-pointer object-cover"
+                onClick={() => setModalImage(`data:image/png;base64,${userProfile.profilePicture}`)}
+              />
+            ) : (
+              <i className="bx bx-user text-7xl text-gray-400"></i>
+            )}
+            <h2 className="mt-3 text-xl font-semibold">{userProfile?.name || "User"}</h2>
+            <p className="text-gray-500 text-sm">{userProfile?.email || ""}</p>
+          </div>
           
-          <div className="mt-3 max-h-64 overflow-y-auto pr-2">
-            {friends.length > 0 ? (
-              friends.map((friend) => (
-                <div 
-                  key={friend._id} 
-                  className="flex items-center py-3 px-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors mb-2"
-                  onClick={() => navigateToFriendProfile(friend.email)}
-                >
-                  {friend.profilePicture ? (
-                    <img
-                      src={`data:image/png;base64,${friend.profilePicture}`}
-                      alt={friend.name}
-                      className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <h3 className="font-semibold text-gray-700 flex items-center">
+              <i className="bx bx-group mr-2 text-blue-500"></i> Friends
+            </h3>
+            
+            <div className="mt-3 max-h-64 overflow-y-auto">
+              {friends.length > 0 ? (
+                friends.map((friend) => (
+                  <div 
+                    key={friend._id} 
+                    className="flex items-center py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
+                    onClick={() => {
+                      navigateToFriendProfile(friend.email);
+                      setShowMobileMenu(false);
+                    }}
+                  >
+                    {friend.profilePicture ? (
+                      <img
+                        src={`data:image/png;base64,${friend.profilePicture}`}
+                        alt={friend.name}
+                        className="w-10 h-10 rounded-full object-cover mr-3"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                        <i className="bx bx-user text-gray-400"></i>
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-800">{friend.name}</p>
+                      <p className="text-xs text-gray-500">{friend.email}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm py-2">No friends yet</p>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 lg:p-6">
+          {/* Post Creation Card */}
+          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+            <form onSubmit={handleUpload}>
+              <div className="flex items-start space-x-3">
+                {userProfile?.profilePicture ? (
+                  <img
+                    src={`data:image/png;base64,${userProfile.profilePicture}`}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                    onClick={() => setModalImage(`data:image/png;base64,${userProfile.profilePicture}`)}
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i className="bx bx-user text-gray-400"></i>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="What's on your mind?"
+                    value={postText}
+                    onChange={(e) => setPostText(e.target.value)}
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
+              {preview && (
+                <div className="mt-3 relative">
+                  <img 
+                    src={preview} 
+                    alt="Preview" 
+                    className="rounded-lg max-w-full h-auto max-h-80 object-contain cursor-pointer" 
+                    onClick={() => setModalImage(preview)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreview(null);
+                      setSelectedFile(null);
+                    }}
+                    className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                  >
+                    <i className="bx bx-x text-xl text-gray-700"></i>
+                  </button>
+                </div>
+              )}
+              
+              <div className="mt-3 flex justify-between items-center">
+                <div>
+                  <label className="inline-flex items-center px-3 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
+                    <i className="bx bx-image text-blue-500 mr-2"></i>
+                    <span className="text-gray-700">Photo</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileChange} 
+                      className="hidden" 
                     />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                      <i className="bx bx-user text-gray-500"></i>
+                  </label>
+                </div>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  disabled={!postText && !selectedFile}
+                >
+                  Post
+                </button>
+              </div>
+              
+              {uploadError && (
+                <div className="mt-2 text-red-500 text-sm bg-red-50 p-2 rounded">
+                  {uploadError}
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Posts Feed */}
+          <div className="space-y-4">
+            {loading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : null}
+            
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <i className="bx bx-error text-red-500 text-xl"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {uploadedPosts.length === 0 && !loading ? (
+              <div className="text-center py-10">
+                <i className="bx bx-news text-4xl text-gray-400 mb-2"></i>
+                <p className="text-gray-500">No posts yet. Create your first post!</p>
+              </div>
+            ) : (
+              uploadedPosts.map((post) => (
+                <div key={post._id} className="bg-white rounded-xl shadow-md overflow-hidden">
+                  {/* Post Header */}
+                  <div className="p-4 flex items-center space-x-3 border-b">
+                    {post.userProfilePicture ? (
+                      <img
+                        src={`data:image/png;base64,${post.userProfilePicture}`}
+                        alt={post.userName}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i className="bx bx-user text-gray-400"></i>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{post.userName}</h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(post.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Post Content */}
+                  <div className="p-4">
+                    <p className="text-gray-700 mb-3">{post.text}</p>
+                    {post.image && (
+                      <div className="mt-2 rounded-lg overflow-hidden">
+                        <img 
+                          src={`data:image/png;base64,${post.image}`} 
+                          alt="Post" 
+                          className="w-full h-auto max-h-96 object-contain cursor-pointer" 
+                          onClick={() => setModalImage(`data:image/png;base64,${post.image}`)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Post Actions */}
+                  <div className="px-4 py-2 border-t flex justify-between">
+                    <button 
+                      onClick={() => handleLike(post._id)}
+                      className={`flex items-center space-x-1 px-3 py-1 rounded-full ${post.likes.includes(email) ? 'text-blue-500' : 'text-gray-500'} hover:bg-gray-100`}
+                    >
+                      <i className="bx bx-like"></i>
+                      <span>{post.likes.length}</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowCommentsForPost(post._id)}
+                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100"
+                    >
+                      <i className="bx bx-comment"></i>
+                      <span>{post.comments?.length || 0}</span>
+                    </button>
+                    {post.userId === email && (
+                      <button 
+                        onClick={() => handleDelete(post._id)}
+                        className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100 hover:text-red-500"
+                      >
+                        <i className="bx bx-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Comments Preview */}
+                  {post.comments && post.comments.length > 0 && (
+                    <div className="px-4 py-2 border-t bg-gray-50">
+                      <div 
+                        className="text-sm text-blue-500 cursor-pointer hover:underline mb-2"
+                        onClick={() => setShowCommentsForPost(post._id)}
+                      >
+                        View all {post.comments.length} comments
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {getRecentComments(post.comments, 2).map((comment, index) => (
+                          <div key={index} className="text-sm text-gray-700 bg-white p-2 rounded-lg">
+                            <strong className="text-gray-800">{getUserName(comment.userId)}</strong>: {comment.commentText}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  <div>
-                    <p className="font-medium text-gray-800">{friend.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{friend.email}</p>
+                  
+                  {/* Add Comment */}
+                  <div className="p-4 border-t">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="text" 
+                        placeholder="Add a comment..." 
+                        value={comments[post._id] || ""}
+                        onChange={(e) => setComments({
+                          ...comments,
+                          [post._id]: e.target.value
+                        })}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleComment(post._id);
+                          }
+                        }} 
+                        className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                      />
+                      <button 
+                        onClick={() => handleComment(post._id)}
+                        disabled={!comments[post._id]?.trim()}
+                        className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50"
+                      >
+                        <i className="bx bx-send"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
-            ) : (
-              <div className="text-center py-4">
-                <i className="bx bx-user-plus text-3xl text-gray-400 mb-2"></i>
-                <p className="text-gray-500 text-sm">No friends yet</p>
-              </div>
             )}
           </div>
-        </div>
-      </aside>
+        </main>
+      </div>
 
-      {/* Main content */}
-      <main className="flex-1 p-4 md:p-6 mt-16 md:mt-0">
-        {/* Create Post Card */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-          <form onSubmit={handleUpload} className="p-5">
-            <div className="flex items-start space-x-3">
-              {userProfile?.profilePicture ? (
-                <img
-                  src={`data:image/png;base64,${userProfile.profilePicture}`}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-blue-300"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <i className="bx bx-user text-gray-500"></i>
-                </div>
-              )}
-              <input
-                type="text"
-                placeholder="What's on your mind?"
-                value={postText}
-                onChange={(e) => setPostText(e.target.value)}
-                className="flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none transition-all"
-              />
-            </div>
-            
-            {preview && (
-              <div className="mt-4 relative">
-                <img 
-                  src={preview} 
-                  alt="Preview" 
-                  className="rounded-lg w-full max-h-80 object-contain cursor-pointer" 
-                  onClick={() => setModalImage(preview)}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreview(null);
-                    setSelectedFile(null);
-                  }}
-                  className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-                >
-                  <i className="bx bx-x text-xl text-gray-700"></i>
-                </button>
-              </div>
-            )}
-            
-            <div className="mt-4 flex justify-between items-center">
-              <div>
-                <label className="inline-flex items-center cursor-pointer text-gray-500 hover:text-blue-500 transition-colors">
-                  <i className="bx bx-image-add text-xl mr-1"></i>
-                  <span className="text-sm">Photo</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <button 
-                type="submit" 
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                disabled={!postText && !selectedFile}
-              >
-                Post
-              </button>
-            </div>
-            {uploadError && (
-              <p className="mt-2 text-sm text-red-500 text-center">{uploadError}</p>
-            )}
-          </form>
-        </div>
-
-        {/* Posts Feed */}
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-            <div className="flex items-center">
-              <i className="bx bx-error-circle text-red-500 mr-2"></i>
-              <p className="text-red-700">{error}</p>
-            </div>
-          </div>
-        ) : uploadedPosts.length === 0 ? (
-          <div className="text-center py-10">
-            <i className="bx bx-news text-4xl text-gray-400 mb-3"></i>
-            <p className="text-gray-500">No posts yet. Share something with your friends!</p>
-          </div>
-        ) : (
-          uploadedPosts.map((post) => (
-            <div key={post._id} className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-              {/* Post Header */}
-              <div className="p-4 flex items-center justify-between border-b border-gray-100">
-                <div className="flex items-center space-x-3">
-                  {post.userProfilePicture ? (
-                    <img
-                      src={`data:image/png;base64,${post.userProfilePicture}`}
-                      alt={post.userName}
-                      className="w-10 h-10 rounded-full border-2 border-blue-300"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <i className="bx bx-user text-gray-500"></i>
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{post.userName}</h3>
-                    <p className="text-xs text-gray-500">
-                      {new Date(post.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-                {post.userEmail === email && (
-                  <button 
-                    onClick={() => handleDelete(post._id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                    title="Delete post"
-                  >
-                    <i className="bx bx-trash"></i>
-                  </button>
-                )}
-              </div>
-              
-              {/* Post Content */}
-              <div className="p-4">
-                {post.text && (
-                  <p className="text-gray-700 mb-4 whitespace-pre-line">{post.text}</p>
-                )}
-                {post.image && (
-                  <div className="mb-4 rounded-lg overflow-hidden">
-                    <img 
-                      src={`data:image/png;base64,${post.image}`} 
-                      alt="Post" 
-                      className="w-full h-auto max-h-96 object-contain cursor-pointer" 
-                      onClick={() => setModalImage(`data:image/png;base64,${post.image}`)}
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* Post Actions */}
-              <div className="px-4 py-2 border-t border-gray-100 flex justify-between">
-                <button 
-                  onClick={() => handleLike(post._id)}
-                  className={`flex items-center space-x-1 px-3 py-1 rounded-lg ${post.likes.includes(email) ? 'text-blue-500' : 'text-gray-500 hover:text-blue-500'}`}
-                >
-                  <i className="bx bx-like text-xl"></i>
-                  <span>{post.likes.length}</span>
-                </button>
-                <button 
-                  onClick={() => setShowCommentsForPost(post._id)}
-                  className="flex items-center space-x-1 px-3 py-1 rounded-lg text-gray-500 hover:text-blue-500"
-                >
-                  <i className="bx bx-comment text-xl"></i>
-                  <span>{post.comments?.length || 0}</span>
-                </button>
-              </div>
-              
-              {/* Comments Preview */}
-              {post.comments && post.comments.length > 0 && (
-                <div className="px-4 pb-3 border-t border-gray-100">
-                  {getRecentComments(post.comments, 2).map((comment, index) => (
-                    <div key={index} className="mt-2 flex items-start space-x-2">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                          <i className="bx bx-user text-gray-500 text-sm"></i>
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg px-3 py-2 flex-1">
-                        <p className="text-sm font-medium text-gray-800">{getUserName(comment.userId)}</p>
-                        <p className="text-sm text-gray-700">{comment.commentText}</p>
-                      </div>
-                    </div>
-                  ))}
-                  {post.comments.length > 2 && (
-                    <button 
-                      onClick={() => setShowCommentsForPost(post._id)}
-                      className="mt-2 text-sm text-blue-500 hover:underline"
-                    >
-                      View all {post.comments.length} comments
-                    </button>
-                  )}
-                </div>
-              )}
-              
-              {/* Add Comment */}
-              <div className="px-4 py-3 border-t border-gray-100">
-                <div className="flex items-center space-x-2">
-                  {userProfile?.profilePicture ? (
-                    <img
-                      src={`data:image/png;base64,${userProfile.profilePicture}`}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full border border-gray-200"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <i className="bx bx-user text-gray-500 text-sm"></i>
-                    </div>
-                  )}
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={comments[post._id] || ""}
-                      onChange={(e) => setComments({
-                        ...comments,
-                        [post._id]: e.target.value
-                      })}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleComment(post._id);
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-gray-50 rounded-full text-sm border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-transparent"
-                    />
-                    <button 
-                      onClick={() => handleComment(post._id)}
-                      disabled={!comments[post._id]?.trim()}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 disabled:text-gray-400"
-                    >
-                      <i className="bx bx-send"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-
-        {/* Image Modal */}
-        {modalImage && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-            onClick={() => setModalImage(null)}
-          >
-            <div className="relative max-w-4xl w-full">
-              <img 
-                src={modalImage} 
-                alt="Enlarged view" 
-                className="max-w-full max-h-[90vh] object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <button 
-                className="absolute top-0 right-0 m-4 text-white text-3xl hover:text-gray-300 transition-colors"
-                onClick={() => setModalImage(null)}
-              >
-                <i className="bx bx-x"></i>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Comments Modal */}
-        {showCommentsForPost && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowCommentsForPost(null)}
-          >
-            <div 
-              className="bg-white rounded-xl w-full max-w-md max-h-[90vh] flex flex-col"
+      {/* Image Modal */}
+      {modalImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={() => setModalImage(null)}
+        >
+          <div className="relative max-w-4xl w-full">
+            <img 
+              src={modalImage} 
+              alt="Enlarged view" 
+              className="max-w-full max-h-[90vh] object-contain mx-auto"
               onClick={(e) => e.stopPropagation()}
+            />
+            <button 
+              className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all"
+              onClick={() => setModalImage(null)}
             >
-              <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800">Comments</h3>
-                <button 
-                  className="text-gray-500 hover:text-gray-700 p-1"
-                  onClick={() => setShowCommentsForPost(null)}
-                >
-                  <i className="bx bx-x text-2xl"></i>
-                </button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto p-4">
-                {uploadedPosts.find(post => post._id === showCommentsForPost)?.comments
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .map((comment, index) => (
-                    <div key={index} className="mb-4 flex items-start space-x-3">
+              <i className="bx bx-x text-2xl"></i>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Comments Modal */}
+      {showCommentsForPost && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowCommentsForPost(null)}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-md w-full max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h3 className="text-lg font-semibold">Comments</h3>
+              <button 
+                className="text-gray-500 hover:text-gray-700 p-1"
+                onClick={() => setShowCommentsForPost(null)}
+              >
+                <i className="bx bx-x text-2xl"></i>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4">
+              {uploadedPosts.find(post => post._id === showCommentsForPost)?.comments
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .map((comment, index) => (
+                  <div key={index} className="mb-4">
+                    <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <i className="bx bx-user text-gray-500"></i>
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i className="bx bx-user text-gray-400"></i>
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="font-medium text-gray-800">{getUserName(comment.userId)}</p>
-                          <p className="text-gray-700 mt-1">{comment.commentText}</p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {new Date(comment.createdAt).toLocaleString()}
-                          </p>
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                          <p className="font-semibold text-sm">{getUserName(comment.userId)}</p>
+                          <p className="text-gray-700">{comment.commentText}</p>
                         </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                  ))
-                }
-              </div>
-              
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center space-x-2">
-                  {userProfile?.profilePicture ? (
-                    <img
-                      src={`data:image/png;base64,${userProfile.profilePicture}`}
-                      alt="Profile"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <i className="bx bx-user text-gray-500"></i>
-                    </div>
-                  )}
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={comments[showCommentsForPost] || ""}
-                      onChange={(e) => setComments({
-                        ...comments,
-                        [showCommentsForPost]: e.target.value
-                      })}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleComment(showCommentsForPost);
-                        }
-                      }}
-                      className="w-full px-4 py-2 bg-gray-50 rounded-full border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-transparent"
-                    />
-                    <button 
-                      onClick={() => handleComment(showCommentsForPost)}
-                      disabled={!comments[showCommentsForPost]?.trim()}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 disabled:text-gray-400"
-                    >
-                      <i className="bx bx-send text-xl"></i>
-                    </button>
                   </div>
-                </div>
+                ))
+              }
+            </div>
+            
+            <div className="p-4 border-t sticky bottom-0 bg-white">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="text" 
+                  placeholder="Add a comment..." 
+                  value={comments[showCommentsForPost] || ""}
+                  onChange={(e) => setComments({
+                    ...comments,
+                    [showCommentsForPost]: e.target.value
+                  })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleComment(showCommentsForPost);
+                    }
+                  }} 
+                  className="flex-1 p-2 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                />
+                <button 
+                  onClick={() => handleComment(showCommentsForPost)}
+                  disabled={!comments[showCommentsForPost]?.trim()}
+                  className="p-2 text-blue-500 rounded-full hover:bg-blue-50 disabled:opacity-50"
+                >
+                  <i className="bx bx-send"></i>
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }
