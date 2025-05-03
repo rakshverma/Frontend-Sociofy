@@ -418,14 +418,13 @@ function Body() {
                       <i className="bx bx-comment text-xl"></i>
                       <span>{post.comments?.length || 0}</span>
                     </button>
-                                        {post.userId === email && (
                       <button 
                         onClick={() => handleDelete(post._id)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         🗑️
                       </button>
-                    )}
+                    
                   </div>
                   
                   {/* Comments Preview */}
