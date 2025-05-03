@@ -26,28 +26,27 @@ function Nav() {
     navigate("/", { replace: true });
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) {
-        if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
-          setShowDropdown(false);
-        }
-      }
+ useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
+        searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+      setShowDropdown(false);
+    }
 
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-        setShowNotifications(false);
-      }
+    if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      setShowNotifications(false);
+    }
 
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
-      }
-    };
+    if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+      setMobileMenuOpen(false);
+    }
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
 
   // Fetch friend requests when component mounts
   useEffect(() => {
