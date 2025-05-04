@@ -146,7 +146,7 @@ const Chatroom = () => {
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 mt-[80px]">
       <Nav />
       
       <div className="flex flex-1 pt-16 overflow-hidden">
