@@ -569,6 +569,7 @@ function Nav() {
             title="Logout"
           >
             <FaSignOutAlt className="h-5 w-5" />
+              Logout
           </button>
             
             <div className="mt-2 pt-2 border-t border-gray-200">
