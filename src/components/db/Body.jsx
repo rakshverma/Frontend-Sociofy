@@ -175,7 +175,7 @@ function Body() {
   };
   
   return (
-    <div className="pt-16 mt-4 flex min-h-screen bg-gray-100">
+    <div className="pt-20 mt-4 flex min-h-screen bg-gray-100">
       <aside className="w-72 bg-white shadow-lg p-6">
         <div className="text-center">
           {userProfile?.profilePicture ? (
