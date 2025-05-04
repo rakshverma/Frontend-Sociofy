@@ -563,6 +563,13 @@ function Nav() {
               <FaCog className="h-5 w-5 mr-3 text-blue-600" />
               <span>Settings</span>
             </Link>
+            <button
+            onClick={handleLogout}
+            className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-50 ml-2"
+            title="Logout"
+          >
+            <FaSignOutAlt className="h-5 w-5" />
+          </button>
             
             <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="px-4 py-2 text-gray-800 font-medium">
