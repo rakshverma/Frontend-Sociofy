@@ -95,6 +95,7 @@ function Nav() {
       setShowDropdown(false);
       setMobileMenuOpen(false);
       setShowMobileSearch(false);
+      setSearchQuery('');
     }
   };
 
@@ -119,10 +120,11 @@ function Nav() {
     setShowMobileSearch(false);
   };
 
-  const toggleMobileSearch = () => {
-    setShowMobileSearch(!showMobileSearch);
-    setShowDropdown(false);
-    setMobileMenuOpen(false);
+  const handleMobileSearchClick = () => {
+    setShowMobileSearch(true);
+    setTimeout(() => {
+      document.getElementById('mobile-search-input')?.focus();
+    }, 100);
   };
 
   const handleAcceptFriendRequest = async (requestId, event) => {
@@ -362,7 +364,7 @@ function Nav() {
         <div className="flex md:hidden items-center space-x-4">
           <button 
             className="text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
-            onClick={toggleMobileSearch}
+            onClick={handleMobileSearchClick}
             aria-label="Search"
           >
             <FaSearch className="h-5 w-5" />
@@ -389,19 +391,28 @@ function Nav() {
         <div className="md:hidden fixed top-16 left-0 right-0 bg-white z-40 shadow-md p-3 border-b border-gray-200">
           <div className="relative flex items-center">
             <button 
-              onClick={toggleMobileSearch}
+              onClick={() => {
+                setShowMobileSearch(false);
+                setSearchQuery('');
+                setShowDropdown(false);
+              }}
               className="absolute left-2 text-gray-500 hover:text-gray-700"
             >
               <FaTimes className="h-5 w-5" />
             </button>
             <form onSubmit={handleSearchSubmit} className="w-full">
               <input
+                id="mobile-search-input"
                 type="text"
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full text-sm bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Search people..."
                 value={searchQuery}
                 onChange={handleSearch}
-                onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                onFocus={() => {
+                  if (searchQuery.length >= 2 && searchResults.length > 0) {
+                    setShowDropdown(true);
+                  }
+                }}
                 autoFocus
               />
             </form>
@@ -572,6 +583,7 @@ function Nav() {
           </div>
         </div>
         
+        {/* Added Logout Button in Mobile Menu */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <button
             onClick={handleLogout}
