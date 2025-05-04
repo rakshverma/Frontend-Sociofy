@@ -44,7 +44,7 @@ function Profile() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="pt-10 flex flex-col items-center mt-10 p-6 bg-white shadow-lg rounded-lg max-w-lg mx-auto">
+    <div className="pt-[80px] flex flex-col items-center mt-10 p-6 bg-white shadow-lg rounded-lg max-w-lg mx-auto">
       <img
         src={user?.profilePicture ? `data:image/jpeg;base64,${user.profilePicture}` : "https://via.placeholder.com/150"}
         alt="Profile"
