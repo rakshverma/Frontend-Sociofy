@@ -174,7 +174,7 @@ function Body() {
   };
   
   return (
-    <div className="pt-15 mt-15 flex min-h-screen bg-gray-100">
+    <div className="pt-[80px] mt-[80px] flex min-h-screen bg-gray-100">
       {/* Sidebar - Fixed position with proper spacing */}
       <aside className="hidden md:block w-72 bg-white shadow-lg p-6 fixed h-[calc(100vh-5rem)] overflow-y-auto">
         <div className="text-center">
