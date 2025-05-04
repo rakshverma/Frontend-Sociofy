@@ -26,14 +26,14 @@ function Body() {
       fetchPosts();
       fetchFriends();
     }
-  
+
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setModalImage(null);
         setShowCommentsForPost(null);
       }
     };
-  
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [email]);
@@ -107,7 +107,6 @@ function Body() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Post uploaded successfully!");
       setSelectedFile(null);
       setPreview(null);
       setPostText("");
@@ -175,20 +174,45 @@ function Body() {
   };
   
   return (
-    <div className="pt-20 mt-4 flex min-h-screen bg-gray-100">
-      <aside className="w-72 bg-white shadow-lg p-6">
+    <div className="pt-20 pb-16 md:pb-0 flex min-h-screen bg-gray-100">
+      {/* Mobile bottom navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg flex justify-around items-center p-3 z-40">
+        <button 
+          className="flex flex-col items-center text-blue-500"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <i className="bx bx-home text-2xl"></i>
+          <span className="text-xs mt-1">Home</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-500">
+          <i className="bx bx-search text-2xl"></i>
+          <span className="text-xs mt-1">Search</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-500">
+          <i className="bx bx-bell text-2xl"></i>
+          <span className="text-xs mt-1">Notifications</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-500">
+          <i className="bx bx-user text-2xl"></i>
+          <span className="text-xs mt-1">Profile</span>
+        </button>
+      </div>
+
+      {/* Sidebar - Hidden on mobile */}
+      <aside className="hidden md:block w-72 bg-white shadow-lg p-6 fixed h-[calc(100vh-5rem)] overflow-y-auto">
         <div className="text-center">
           {userProfile?.profilePicture ? (
             <img
               src={`data:image/png;base64,${userProfile.profilePicture}`}
               alt="Profile"
-              className="w-24 h-24 mx-auto rounded-full border-4 border-blue-500 cursor-pointer"
+              className="w-24 h-24 mx-auto rounded-full border-4 border-blue-500 cursor-pointer object-cover"
               onClick={() => setModalImage(`data:image/png;base64,${userProfile.profilePicture}`)}
             />
           ) : (
             <i className="bx bx-user text-7xl text-gray-400"></i>
           )}
           <h2 className="mt-3 text-xl font-semibold">{userProfile?.name || "User"}</h2>
+          <p className="text-gray-500 text-sm">{userProfile?.email || ""}</p>
         </div>
         
         <div className="mt-6 pt-4 border-t border-gray-200">
@@ -201,7 +225,7 @@ function Body() {
               friends.map((friend) => (
                 <div 
                   key={friend._id} 
-                  className="flex items-center py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
+                  className="flex items-center py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50 rounded-lg"
                   onClick={() => navigateToFriendProfile(friend.email)}
                 >
                   {friend.profilePicture ? (
@@ -217,6 +241,7 @@ function Body() {
                   )}
                   <div>
                     <p className="font-medium text-gray-800">{friend.name}</p>
+                    <p className="text-xs text-gray-500">{friend.email}</p>
                   </div>
                 </div>
               ))
@@ -227,86 +252,219 @@ function Body() {
         </div>
       </aside>
 
-      <main className="flex-1 p-6">
-        <form className="bg-white p-6 rounded-lg shadow-lg" onSubmit={handleUpload}>
-          <input
-            type="text"
-            placeholder="What's on your mind?"
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-            className="w-full p-3 border rounded-md"
-          />
-          <input type="file" accept="image/*" onChange={handleFileChange} className="mt-3" />
-          {preview && (
-            <img 
-              src={preview} 
-              alt="Preview" 
-              className="mt-3 rounded-lg max-w-xs cursor-pointer" 
-              onClick={() => setModalImage(preview)}
-            />
-          )}
-          {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
-          <button type="submit" className="mt-4 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
-            Post
-          </button>
-        </form>
+      {/* Main content */}
+      <main className="flex-1 p-4 md:ml-72 md:p-6">
+        {/* Create Post Card */}
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
+          <div className="flex items-start space-x-3">
+            {userProfile?.profilePicture ? (
+              <img
+                src={`data:image/png;base64,${userProfile.profilePicture}`}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                <i className="bx bx-user text-gray-400"></i>
+              </div>
+            )}
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="What's on your mind?"
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+                className="w-full p-3 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          </div>
 
-        <div className="mt-6 space-y-6">
-          {loading ? <p className="text-gray-500">Loading...</p> : null}
-          {error && <p className="text-red-500">{error}</p>}
+          <div className="mt-4 flex justify-between border-t pt-3">
+            <label className="flex items-center text-gray-500 hover:bg-gray-100 px-3 py-1 rounded-lg cursor-pointer">
+              <i className="bx bx-image text-xl text-green-500 mr-1"></i>
+              <span className="text-sm">Photo</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className="hidden" 
+              />
+            </label>
+            <button 
+              type="button" 
+              onClick={handleUpload}
+              disabled={!postText && !selectedFile}
+              className={`px-4 py-1 rounded-full ${(!postText && !selectedFile) ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+            >
+              Post
+            </button>
+          </div>
+
+          {preview && (
+            <div className="mt-3 relative">
+              <img 
+                src={preview} 
+                alt="Preview" 
+                className="rounded-lg max-w-full max-h-60 object-contain cursor-pointer" 
+                onClick={() => setModalImage(preview)}
+              />
+              <button
+                onClick={() => {
+                  setPreview(null);
+                  setSelectedFile(null);
+                }}
+                className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <i className="bx bx-x text-xl"></i>
+              </button>
+            </div>
+          )}
+          {uploadError && <p className="text-red-500 mt-2 text-sm">{uploadError}</p>}
+        </div>
+
+        {/* Posts Feed */}
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : null}
+          
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+              {error}
+            </div>
+          )}
+          
+          {uploadedPosts.length === 0 && !loading ? (
+            <div className="text-center py-10">
+              <i className="bx bx-news text-5xl text-gray-300 mb-3"></i>
+              <p className="text-gray-500">No posts yet. Share something with your friends!</p>
+            </div>
+          ) : null}
+
           {uploadedPosts.map((post) => (
             <div key={post._id} className="bg-white p-4 rounded-lg shadow-md">
-              <strong className="text-gray-800">{post.userName}</strong>
-              <p className="text-gray-700 mt-2">{post.text}</p>
-              {post.image && (
-                <img 
-                  src={`data:image/png;base64,${post.image}`} 
-                  alt="Post" 
-                  className="w-40 h-40 object-cover mt-2 rounded-lg cursor-pointer" 
-                  onClick={() => setModalImage(`data:image/png;base64,${post.image}`)}
-                />
-              )}
-              
-              <div className="mt-2">
-                {post.comments && post.comments.length > 0 && (
-                  <div className="mt-2">
-                    <div 
-                      className="text-sm text-blue-500 cursor-pointer hover:underline"
-                      onClick={() => setShowCommentsForPost(post._id)}
-                    >
-                      View all {post.comments.length} comments
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {post.userProfilePicture ? (
+                    <img
+                      src={`data:image/png;base64,${post.userProfilePicture}`}
+                      alt={post.userName}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <i className="bx bx-user text-gray-400"></i>
                     </div>
-                    
-                    <div className="mt-1 space-y-1">
-                      {getRecentComments(post.comments, 2).map((comment, index) => (
-                        <div key={index} className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
-                          <strong>{getUserName(comment.userId)}</strong>: {comment.commentText}
-                        </div>
-                      ))}
-                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold">{post.userName}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(post.createdAt).toLocaleString()}
+                    </p>
                   </div>
+                </div>
+                {post.userEmail === email && (
+                  <button 
+                    onClick={() => handleDelete(post._id)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <i className="bx bx-trash"></i>
+                  </button>
                 )}
               </div>
+
+              <p className="text-gray-800 mt-3 mb-2">{post.text}</p>
               
-              <div className="flex gap-4 mt-3">
-                <button onClick={() => handleLike(post._id)} className="text-blue-500 hover:underline">👍 Like ({post.likes.length})</button>
-                <button onClick={() => handleDelete(post._id)} className="text-gray-500 hover:underline">🗑️ Delete</button>
+              {post.image && (
+                <div className="mt-2 relative">
+                  <img 
+                    src={`data:image/png;base64,${post.image}`} 
+                    alt="Post" 
+                    className="w-full max-h-96 object-contain rounded-lg cursor-pointer bg-gray-100" 
+                    onClick={() => setModalImage(`data:image/png;base64,${post.image}`)}
+                  />
+                </div>
+              )}
+              
+              <div className="mt-3 flex justify-between text-gray-500 border-t border-b py-2">
+                <button 
+                  onClick={() => handleLike(post._id)}
+                  className={`flex items-center ${post.likes.includes(email) ? 'text-blue-500' : ''}`}
+                >
+                  <i className="bx bx-like mr-1"></i>
+                  <span>{post.likes.length} Likes</span>
+                </button>
+                <button 
+                  onClick={() => setShowCommentsForPost(post._id)}
+                  className="flex items-center"
+                >
+                  <i className="bx bx-comment mr-1"></i>
+                  <span>{post.comments?.length || 0} Comments</span>
+                </button>
               </div>
-              <input 
-                type="text" 
-                placeholder="Add a comment..." 
-                value={comments[post._id] || ""}
-                onChange={(e) => setComments({
-                  ...comments,
-                  [post._id]: e.target.value
-                })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleComment(post._id);
-                  }
-                }} 
-                className="w-full mt-2 p-2 border rounded-md" 
-              />
+
+              {/* Recent comments preview */}
+              {post.comments && post.comments.length > 0 && (
+                <div className="mt-2">
+                  <div className="space-y-2">
+                    {getRecentComments(post.comments, 2).map((comment, index) => (
+                      <div key={index} className="flex items-start text-sm">
+                        <span className="font-semibold mr-2">{getUserName(comment.userId)}:</span>
+                        <span className="text-gray-700">{comment.commentText}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {post.comments.length > 2 && (
+                    <button
+                      onClick={() => setShowCommentsForPost(post._id)}
+                      className="text-blue-500 text-sm mt-1 hover:underline"
+                    >
+                      View all {post.comments.length} comments
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Add comment */}
+              <div className="mt-3 flex items-center">
+                {userProfile?.profilePicture ? (
+                  <img
+                    src={`data:image/png;base64,${userProfile.profilePicture}`}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover mr-2"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                    <i className="bx bx-user text-gray-400 text-sm"></i>
+                  </div>
+                )}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    value={comments[post._id] || ""}
+                    onChange={(e) => setComments({
+                      ...comments,
+                      [post._id]: e.target.value
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleComment(post._id);
+                      }
+                    }}
+                    className="w-full p-2 pr-10 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-200"
+                  />
+                  <button
+                    onClick={() => handleComment(post._id)}
+                    disabled={!comments[post._id]?.trim()}
+                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${!comments[post._id]?.trim() ? 'text-gray-300' : 'text-blue-500 hover:text-blue-600'}`}
+                  >
+                    <i className="bx bx-send"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -315,21 +473,21 @@ function Body() {
       {/* Image Modal */}
       {modalImage && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => setModalImage(null)}
         >
-          <div className="max-w-4xl max-h-screen p-4">
+          <div className="relative max-w-4xl w-full">
             <img 
               src={modalImage} 
               alt="Enlarged view" 
-              className="max-w-full max-h-[90vh] object-contain"
+              className="max-w-full max-h-[90vh] object-contain mx-auto"
               onClick={(e) => e.stopPropagation()}
             />
             <button 
-              className="absolute top-4 right-4 text-white text-2xl"
+              className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75"
               onClick={() => setModalImage(null)}
             >
-              <i className="bx bx-x"></i>
+              <i className="bx bx-x text-2xl"></i>
             </button>
           </div>
         </div>
@@ -338,58 +496,91 @@ function Body() {
       {/* Comments Modal */}
       {showCommentsForPost && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => setShowCommentsForPost(null)}
         >
           <div 
-            className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] p-4"
+            className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
               <h3 className="text-lg font-semibold">Comments</h3>
               <button 
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1"
                 onClick={() => setShowCommentsForPost(null)}
               >
                 <i className="bx bx-x text-2xl"></i>
               </button>
             </div>
             
-            <div className="overflow-y-auto max-h-[60vh] pr-2">
+            <div className="flex-1 overflow-y-auto p-4">
               {uploadedPosts.find(post => post._id === showCommentsForPost)?.comments
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                 .map((comment, index) => (
-                  <div key={index} className="mb-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-start">
-                      <div className="flex-1">
+                  <div key={index} className="mb-4 flex items-start">
+                    {comment.userProfilePicture ? (
+                      <img
+                        src={`data:image/png;base64,${comment.userProfilePicture}`}
+                        alt={comment.userName}
+                        className="w-10 h-10 rounded-full object-cover mr-3"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                        <i className="bx bx-user text-gray-400"></i>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className="bg-gray-50 rounded-lg p-3">
                         <p className="font-semibold">{getUserName(comment.userId)}</p>
                         <p className="text-gray-700">{comment.commentText}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(comment.createdAt).toLocaleString()}
-                        </p>
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 ))
               }
             </div>
             
-            <div className="mt-4">
-              <input 
-                type="text" 
-                placeholder="Add a comment..." 
-                value={comments[showCommentsForPost] || ""}
-                onChange={(e) => setComments({
-                  ...comments,
-                  [showCommentsForPost]: e.target.value
-                })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleComment(showCommentsForPost);
-                  }
-                }} 
-                className="w-full p-2 border rounded-md" 
-              />
+            <div className="p-4 border-t sticky bottom-0 bg-white">
+              <div className="flex items-center">
+                {userProfile?.profilePicture ? (
+                  <img
+                    src={`data:image/png;base64,${userProfile.profilePicture}`}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                    <i className="bx bx-user text-gray-400"></i>
+                  </div>
+                )}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    value={comments[showCommentsForPost] || ""}
+                    onChange={(e) => setComments({
+                      ...comments,
+                      [showCommentsForPost]: e.target.value
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleComment(showCommentsForPost);
+                      }
+                    }}
+                    className="w-full p-3 pr-12 bg-gray-50 rounded-full focus:outline-none focus:ring-1 focus:ring-blue-200"
+                  />
+                  <button
+                    onClick={() => handleComment(showCommentsForPost)}
+                    disabled={!comments[showCommentsForPost]?.trim()}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${!comments[showCommentsForPost]?.trim() ? 'text-gray-300' : 'text-blue-500 hover:text-blue-600'}`}
+                  >
+                    <i className="bx bx-send text-xl"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
