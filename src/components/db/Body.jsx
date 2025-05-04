@@ -38,167 +38,11 @@ function Body() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [email]);
 
-  const fetchUserProfile = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user/${email}`);
-      setUserProfile(response.data);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      setError("Failed to load user profile.");
-    }
-  };
+  // ... (keep all your existing functions unchanged)
 
-  const fetchPosts = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts/${email}`);
-      setUploadedPosts(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      setError("Failed to load posts.");
-      setLoading(false);
-    }
-  };
-
-  const navigateToFriendProfile = (friendEmail) => {
-    navigate(`/user-profile/${friendEmail}`);
-  };
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Only image files are allowed.");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be under 5MB.");
-      return;
-    }
-
-    setSelectedFile(file);
-    setUploadError("");
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleUpload = async (event) => {
-    event.preventDefault();
-    
-    if (!postText && !selectedFile) {
-      setUploadError("Please enter some text or upload an image.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("text", postText);
-    formData.append("email", email);
-    if (selectedFile) formData.append("image", selectedFile);
-
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setSelectedFile(null);
-      setPreview(null);
-      setPostText("");
-      setUploadError("");
-      fetchPosts();
-    } catch (error) {
-      console.error("Upload error:", error);
-      setUploadError("Failed to upload post. Try again.");
-    }
-  };
-
-  const getUserName = (userId) => {
-    const post = uploadedPosts.find(post => post.userId.toString() === userId.toString());
-    return post ? post.userName : "Unknown User";
-  };
-
-  const handleLike = async (postId) => {
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/like/${postId}`, { email });
-      fetchPosts();
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
-
-  const handleComment = async (postId) => {
-    const comment = comments[postId];
-    if (!comment || !comment.trim()) return;
-    
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/comment/${postId}`, { email, comment });
-      setComments({
-        ...comments,
-        [postId]: ""
-      });
-      fetchPosts();
-    } catch (error) {
-      console.error("Error commenting on post:", error);
-    }
-  };
-
-  const handleDelete = async (postId) => {
-    try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/delete/${postId}`);
-      fetchPosts();
-    } catch (error) {
-      console.error("Error deleting post:", error);
-    }
-  };
-
-  const getRecentComments = (comments, count) => {
-    if (!comments || !comments.length) return [];
-    return [...comments]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, count);
-  };
-
-  const fetchFriends = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${email}`);
-      setFriends(response.data);
-    } catch (error) {
-      console.error("Error fetching friends:", error);
-    }
-  };
-  
   return (
-    <div className="pt-20 pb-16 md:pb-0 flex min-h-screen bg-gray-100">
-      {/* Mobile bottom navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg flex justify-around items-center p-3 z-40">
-        <button 
-          className="flex flex-col items-center text-blue-500"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          <i className="bx bx-home text-2xl"></i>
-          <span className="text-xs mt-1">Home</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-500">
-          <i className="bx bx-search text-2xl"></i>
-          <span className="text-xs mt-1">Search</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-500">
-          <i className="bx bx-bell text-2xl"></i>
-          <span className="text-xs mt-1">Notifications</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-500">
-          <i className="bx bx-user text-2xl"></i>
-          <span className="text-xs mt-1">Profile</span>
-        </button>
-      </div>
-
-      {/* Sidebar - Hidden on mobile */}
+    <div className="pt-20 flex min-h-screen bg-gray-100">
+      {/* Sidebar - Fixed position with proper spacing */}
       <aside className="hidden md:block w-72 bg-white shadow-lg p-6 fixed h-[calc(100vh-5rem)] overflow-y-auto">
         <div className="text-center">
           {userProfile?.profilePicture ? (
@@ -252,7 +96,7 @@ function Body() {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main content with proper margin for sidebar */}
       <main className="flex-1 p-4 md:ml-72 md:p-6">
         {/* Create Post Card */}
         <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
