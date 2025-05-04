@@ -12,8 +12,12 @@ function Nav() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  
   const userEmail = localStorage.getItem("email");
   const navigate = useNavigate();
+  
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const notificationRef = useRef(null);
@@ -32,12 +36,10 @@ function Nav() {
           searchInputRef.current && !searchInputRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
-
       if (notificationRef.current && !notificationRef.current.contains(event.target) &&
           mobileNotificationRef.current && !mobileNotificationRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
-
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) &&
           !event.target.closest('.mobile-menu-button')) {
         setMobileMenuOpen(false);
@@ -54,7 +56,6 @@ function Nav() {
     const fetchFriendRequests = async () => {
       try {
         if (!userEmail) return;
-
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/friend-requests/${userEmail}`);
         const validRequests = response.data.filter(req => req.requestId && req.sender);
         setFriendRequests(validRequests);
@@ -74,22 +75,34 @@ function Nav() {
   const handleSearch = async (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (query.length >= 2) {
+    
+    if (query.length >= 1) {
+      setIsSearching(true);
+      setNoResults(false);
+      
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/search-users?query=${query}&email=${userEmail}`);
         setSearchResults(response.data);
         setShowDropdown(true);
+        setIsSearching(false);
+        
+        if (response.data.length === 0) {
+          setNoResults(true);
+        }
       } catch (error) {
         console.error("Error searching users:", error);
+        setIsSearching(false);
+        setNoResults(true);
       }
     } else {
       setShowDropdown(false);
+      setNoResults(false);
     }
   };
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    
     if (searchQuery.trim()) {
       navigate(`/search-results?query=${searchQuery}`);
       setShowDropdown(false);
@@ -151,7 +164,6 @@ function Nav() {
       await axios.post(`${import.meta.env.VITE_API_URL}/reject-friend-request/${requestId}`, {
         email: userEmail
       });
-
       setFriendRequests(prevRequests => 
         prevRequests.filter(request => request.requestId !== requestId)
       );
@@ -178,7 +190,7 @@ function Nav() {
           </button>
           
           <Link 
-            to={userEmail ? `/dashboard/${userEmail}` : "/"} 
+            to={userEmail ? `/dashboard/${userEmail}` : "/"}
             className="font-bold text-blue-600 text-lg hover:text-blue-700 transition-colors flex items-center"
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -200,45 +212,62 @@ function Nav() {
                 placeholder="Search people..."
                 value={searchQuery}
                 onChange={handleSearch}
-                onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                onFocus={() => searchQuery.length >= 1 && setShowDropdown(true)}
               />
             </div>
             
-            {showDropdown && searchResults.length > 0 && (
+            {showDropdown && (
               <div 
                 ref={dropdownRef}
                 className="absolute mt-1 w-full max-w-md bg-white rounded-lg shadow-lg py-1 z-10 max-h-80 overflow-auto border border-gray-200"
               >
-                {searchResults.slice(0, 5).map((user) => (
-                  <div 
-                    key={user._id} 
-                    className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
-                    onClick={() => handleUserClick(user.email)}
-                  >
-                    {user.profilePicture ? (
-                      <img 
-                        src={`data:image/jpeg;base64,${user.profilePicture}`} 
-                        alt={user.name} 
-                        className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
-                        <FaUserCircle className="h-6 w-6 text-blue-500" />
+                {isSearching && (
+                  <div className="px-4 py-3 text-center text-gray-500">
+                    <div className="animate-pulse">Searching...</div>
+                  </div>
+                )}
+                
+                {!isSearching && noResults && (
+                  <div className="px-4 py-3 text-center text-gray-500">
+                    No results found for "{searchQuery}"
+                  </div>
+                )}
+                
+                {!isSearching && !noResults && searchResults.length > 0 && (
+                  <>
+                    {searchResults.slice(0, 5).map((user) => (
+                      <div 
+                        key={user._id}
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
+                        onClick={() => handleUserClick(user.email)}
+                      >
+                        {user.profilePicture ? (
+                          <img 
+                            src={`data:image/jpeg;base64,${user.profilePicture}`}
+                            alt={user.name}
+                            className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
+                            <FaUserCircle className="h-6 w-6 text-blue-500" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-medium text-gray-900">{user.name}</div>
+                          <div className="text-xs text-gray-500">{user.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {searchResults.length > 5 && (
+                      <div 
+                        className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
+                        onClick={handleSearchSubmit}
+                      >
+                        See all results
                       </div>
                     )}
-                    <div>
-                      <div className="font-medium text-gray-900">{user.name}</div>
-                      <div className="text-xs text-gray-500">{user.email}</div>
-                    </div>
-                  </div>
-                ))}
-                {searchResults.length > 5 && (
-                  <div 
-                    className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
-                    onClick={handleSearchSubmit}
-                  >
-                    See all results
-                  </div>
+                  </>
                 )}
               </div>
             )}
@@ -247,7 +276,7 @@ function Nav() {
         
         <div className="hidden md:flex items-center space-x-5">
           <Link 
-            to={userEmail ? `/dashboard/${userEmail}` : "/"} 
+            to={userEmail ? `/dashboard/${userEmail}` : "/"}
             className="text-gray-700 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
             title="Home"
           >
@@ -255,7 +284,7 @@ function Nav() {
           </Link>
           
           <Link 
-            to="/chatroom" 
+            to="/chatroom"
             className="text-gray-700 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
             title="Messages"
           >
@@ -295,8 +324,8 @@ function Nav() {
                         <div className="flex items-center">
                           {request.sender.profilePicture ? (
                             <img 
-                              src={`data:image/jpeg;base64,${request.sender.profilePicture}`} 
-                              alt={request.sender.name} 
+                              src={`data:image/jpeg;base64,${request.sender.profilePicture}`}
+                              alt={request.sender.name}
                               className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
                             />
                           ) : (
@@ -337,21 +366,19 @@ function Nav() {
           </div>
           
           <Link 
-            to={`/dashboard/profile/${userEmail}`} 
+            to={`/dashboard/profile/${userEmail}`}
             className="text-gray-700 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
             title="Profile"
           >
             <FaUserCircle className="h-5 w-5" />
           </Link>
-
           <Link 
-            to={`/settings/${userEmail}`} 
+            to={`/settings/${userEmail}`}
             className="text-gray-700 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
             title="Settings"
           >
             <FaCog className="h-5 w-5" />
           </Link>
-
           <button
             onClick={handleLogout}
             className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-50 ml-2"
@@ -369,7 +396,6 @@ function Nav() {
           >
             <FaSearch className="h-5 w-5" />
           </button>
-
           <div className="relative" ref={mobileNotificationRef}>
             <button 
               className="text-gray-700 p-2 rounded-full hover:bg-gray-100 relative transition-colors"
@@ -409,7 +435,7 @@ function Nav() {
                 value={searchQuery}
                 onChange={handleSearch}
                 onFocus={() => {
-                  if (searchQuery.length >= 2 && searchResults.length > 0) {
+                  if (searchQuery.length >= 1 && searchResults.length > 0) {
                     setShowDropdown(true);
                   }
                 }}
@@ -418,44 +444,61 @@ function Nav() {
             </form>
           </div>
 
-          {showDropdown && searchResults.length > 0 && (
+          {showDropdown && (
             <div className="mt-2 mx-1 bg-white rounded-lg shadow-lg py-1 z-10 max-h-80 overflow-auto border border-gray-200">
-              {searchResults.slice(0, 5).map((user) => (
-                <div 
-                  key={user._id} 
-                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
-                  onClick={() => {
-                    handleUserClick(user.email);
-                    setShowMobileSearch(false);
-                  }}
-                >
-                  {user.profilePicture ? (
-                    <img 
-                      src={`data:image/jpeg;base64,${user.profilePicture}`} 
-                      alt={user.name} 
-                      className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
-                      <FaUserCircle className="h-6 w-6 text-blue-500" />
+              {isSearching && (
+                <div className="px-4 py-3 text-center text-gray-500">
+                  <div className="animate-pulse">Searching...</div>
+                </div>
+              )}
+              
+              {!isSearching && noResults && (
+                <div className="px-4 py-3 text-center text-gray-500">
+                  No results found for "{searchQuery}"
+                </div>
+              )}
+              
+              {!isSearching && !noResults && searchResults.length > 0 && (
+                <>
+                  {searchResults.slice(0, 5).map((user) => (
+                    <div 
+                      key={user._id}
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
+                      onClick={() => {
+                        handleUserClick(user.email);
+                        setShowMobileSearch(false);
+                      }}
+                    >
+                      {user.profilePicture ? (
+                        <img 
+                          src={`data:image/jpeg;base64,${user.profilePicture}`}
+                          alt={user.name}
+                          className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
+                          <FaUserCircle className="h-6 w-6 text-blue-500" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium text-gray-900">{user.name}</div>
+                        <div className="text-xs text-gray-500">{user.email}</div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {searchResults.length > 5 && (
+                    <div 
+                      className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        handleSearchSubmit({ preventDefault: () => {} });
+                        setShowMobileSearch(false);
+                      }}
+                    >
+                      See all results
                     </div>
                   )}
-                  <div>
-                    <div className="font-medium text-gray-900">{user.name}</div>
-                    <div className="text-xs text-gray-500">{user.email}</div>
-                  </div>
-                </div>
-              ))}
-              {searchResults.length > 5 && (
-                <div 
-                  className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
-                  onClick={() => {
-                    handleSearchSubmit({ preventDefault: () => {} });
-                    setShowMobileSearch(false);
-                  }}
-                >
-                  See all results
-                </div>
+                </>
               )}
             </div>
           )}
@@ -466,10 +509,10 @@ function Nav() {
         ref={mobileMenuRef}
         className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } flex flex-col`}
         style={{ marginTop: '60px' }}
       >
-        <div className="overflow-y-auto h-full pb-20">
+        <div className="overflow-y-auto flex-grow">
           {userEmail && (
             <div className="p-4 border-b border-gray-200 bg-blue-50">
               <div className="flex items-center">
@@ -486,7 +529,7 @@ function Nav() {
 
           <div className="p-2">
             <Link 
-              to={userEmail ? `/dashboard/${userEmail}` : "/"} 
+              to={userEmail ? `/dashboard/${userEmail}` : "/"}
               className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -495,7 +538,7 @@ function Nav() {
             </Link>
             
             <Link 
-              to="/chatroom" 
+              to="/chatroom"
               className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -504,7 +547,7 @@ function Nav() {
             </Link>
             
             <Link 
-              to={`/dashboard/profile/${userEmail}`} 
+              to={`/dashboard/profile/${userEmail}`}
               className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -513,7 +556,7 @@ function Nav() {
             </Link>
             
             <Link 
-              to={`/settings/${userEmail}`} 
+              to={`/settings/${userEmail}`}
               className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -542,8 +585,8 @@ function Nav() {
                       <div className="flex items-center">
                         {request.sender.profilePicture ? (
                           <img 
-                            src={`data:image/jpeg;base64,${request.sender.profilePicture}`} 
-                            alt={request.sender.name} 
+                            src={`data:image/jpeg;base64,${request.sender.profilePicture}`}
+                            alt={request.sender.name}
                             className="h-10 w-10 rounded-full object-cover mr-3 border border-white shadow-sm"
                           />
                         ) : (
@@ -583,8 +626,8 @@ function Nav() {
           </div>
         </div>
         
-        {/* Added Logout Button in Mobile Menu */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+        {/* Logout Button in Mobile Menu - Fixed at bottom */}
+        <div className="p-4 border-t border-gray-200 bg-white mt-auto">
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center px-4 py-3 text-red-500 bg-red-50 hover:bg-red-100 rounded-md transition-colors font-medium"
@@ -624,8 +667,8 @@ function Nav() {
                     <div className="flex items-center">
                       {request.sender.profilePicture ? (
                         <img 
-                          src={`data:image/jpeg;base64,${request.sender.profilePicture}`} 
-                          alt={request.sender.name} 
+                          src={`data:image/jpeg;base64,${request.sender.profilePicture}`}
+                          alt={request.sender.name}
                           className="h-12 w-12 rounded-full object-cover mr-3 border-2 border-white shadow-sm"
                         />
                       ) : (
