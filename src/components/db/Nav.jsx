@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FaHome, FaUserCircle, FaCog, FaEnvelope, FaBell, FaUser, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
-import { IoSearch } from 'react-icons/io5';
+import { FaHome, FaUserCircle, FaCog, FaEnvelope, FaBell, FaUser, FaSignOutAlt, FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 
@@ -12,6 +11,7 @@ function Nav() {
   const [friendRequests, setFriendRequests] = useState([]);
   const [notificationCount, setNotificationCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const userEmail = localStorage.getItem("email");
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -23,7 +23,6 @@ function Nav() {
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    console.log("Storage cleared!");
     navigate("/", { replace: true });
   };
 
@@ -51,21 +50,13 @@ function Nav() {
     };
   }, []);
 
-  // Fetch friend requests when component mounts
   useEffect(() => {
     const fetchFriendRequests = async () => {
       try {
         if (!userEmail) return;
 
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/friend-requests/${userEmail}`);
-        console.log("Friend requests response:", response.data);
-        
         const validRequests = response.data.filter(req => req.requestId && req.sender);
-        if (validRequests.length !== response.data.length) {
-          console.warn("Some friend requests are missing required fields:", 
-            response.data.filter(req => !req.requestId || !req.sender));
-        }
-        
         setFriendRequests(validRequests);
         setNotificationCount(validRequests.length);
       } catch (error) {
@@ -75,7 +66,6 @@ function Nav() {
 
     if (userEmail) {
       fetchFriendRequests();
-      
       const interval = setInterval(fetchFriendRequests, 60000);
       return () => clearInterval(interval);
     }
@@ -104,6 +94,7 @@ function Nav() {
       navigate(`/search-results?query=${searchQuery}`);
       setShowDropdown(false);
       setMobileMenuOpen(false);
+      setShowMobileSearch(false);
     }
   };
 
@@ -112,54 +103,48 @@ function Nav() {
     setShowDropdown(false);
     setSearchQuery('');
     setMobileMenuOpen(false);
+    setShowMobileSearch(false);
   };
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
     setMobileMenuOpen(false);
+    setShowMobileSearch(false);
   };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
     setShowDropdown(false);
     setShowNotifications(false);
+    setShowMobileSearch(false);
+  };
+
+  const toggleMobileSearch = () => {
+    setShowMobileSearch(!showMobileSearch);
+    setShowDropdown(false);
+    setMobileMenuOpen(false);
   };
 
   const handleAcceptFriendRequest = async (requestId, event) => {
     try {
-      // Stop event propagation to prevent menu closing
-      if (event) {
-        event.stopPropagation();
-      }
+      if (event) event.stopPropagation();
       
-      console.log("Accepting friend request with ID:", requestId);
-
-      if (!requestId) {
-        throw new Error("Request ID is missing or undefined");
-      }
-      
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/accept-friend-request/${requestId}`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/accept-friend-request/${requestId}`, {
         email: userEmail
       });
       
       setFriendRequests(prevRequests => 
         prevRequests.filter(request => request.requestId !== requestId)
       );
-      
       setNotificationCount(prev => Math.max(0, prev - 1));
-      alert("Friend request accepted successfully!");
     } catch (error) {
       console.error('Error accepting friend request:', error);
-      alert("Failed to accept friend request: " + (error.response?.data?.message || error.message));
     }
   };
 
   const handleRejectFriendRequest = async (requestId, event) => {
     try {
-      // Stop event propagation to prevent menu closing
-      if (event) {
-        event.stopPropagation();
-      }
+      if (event) event.stopPropagation();
       
       await axios.post(`${import.meta.env.VITE_API_URL}/reject-friend-request/${requestId}`, {
         email: userEmail
@@ -171,14 +156,12 @@ function Nav() {
       setNotificationCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Error rejecting friend request:", error);
-      alert("Failed to reject friend request. Please try again.");
     }
   };
 
   return (
     <>
       <nav className="bg-white shadow-md px-4 py-3 flex items-center justify-between fixed w-full z-50 top-0">
-        {/* Logo/Brand and Mobile Menu Button */}
         <div className="flex items-center space-x-4">
           <button 
             className="md:hidden text-gray-700 focus:outline-none mobile-menu-button transition-transform hover:scale-110"
@@ -202,12 +185,11 @@ function Nav() {
           </Link>
         </div>
 
-        {/* Desktop Search - Hidden on mobile */}
         <div className="hidden md:flex flex-1 max-w-md mx-4">
           <form onSubmit={handleSearchSubmit} className="w-full">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IoSearch className="h-4 w-4 text-gray-400" />
+                <FaSearch className="h-4 w-4 text-gray-400" />
               </div>
               <input
                 ref={searchInputRef}
@@ -261,7 +243,6 @@ function Nav() {
           </form>
         </div>
         
-        {/* Desktop Navigation Icons - Hidden on mobile */}
         <div className="hidden md:flex items-center space-x-5">
           <Link 
             to={userEmail ? `/dashboard/${userEmail}` : "/"} 
@@ -378,15 +359,20 @@ function Nav() {
           </button>
         </div>
 
-        {/* Mobile Search and Notification Icons - Visible only on mobile */}
-        <div className="flex md:hidden items-center space-x-2">
-          {/* Mobile Notification Button */}
+        <div className="flex md:hidden items-center space-x-4">
+          <button 
+            className="text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={toggleMobileSearch}
+            aria-label="Search"
+          >
+            <FaSearch className="h-5 w-5" />
+          </button>
+
           <div className="relative" ref={mobileNotificationRef}>
             <button 
-              className="text-gray-700 p-2 rounded-full hover:bg-gray-100 relative"
+              className="text-gray-700 p-2 rounded-full hover:bg-gray-100 relative transition-colors"
               onClick={toggleNotifications}
               aria-label="Notifications"
-              title="Notifications"
             >
               <FaBell className="h-5 w-5" />
               {notificationCount > 0 && (
@@ -396,85 +382,75 @@ function Nav() {
               )}
             </button>
           </div>
-
-          {/* Mobile Search Button */}
-          <button 
-            className="text-gray-700 p-2 rounded-full hover:bg-gray-100"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              document.getElementById('mobile-search-input')?.focus();
-            }}
-            aria-label="Search"
-            title="Search"
-          >
-            <IoSearch className="h-5 w-5" />
-          </button>
         </div>
       </nav>
 
-      {/* Mobile Search Overlay - Only visible when mobile menu is not open */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 bg-white z-40 shadow-md transform transition-transform duration-300 ${
-        !mobileMenuOpen ? 'translate-y-14' : '-translate-y-full'
-      }`}>
-        <div className="p-3 border-t border-gray-200">
-          <form onSubmit={handleSearchSubmit}>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IoSearch className="h-4 w-4 text-gray-400" />
-              </div>
+      {showMobileSearch && (
+        <div className="md:hidden fixed top-16 left-0 right-0 bg-white z-40 shadow-md p-3 border-b border-gray-200">
+          <div className="relative flex items-center">
+            <button 
+              onClick={toggleMobileSearch}
+              className="absolute left-2 text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes className="h-5 w-5" />
+            </button>
+            <form onSubmit={handleSearchSubmit} className="w-full">
               <input
-                id="mobile-search-input"
                 type="text"
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full text-sm bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Search people..."
                 value={searchQuery}
                 onChange={handleSearch}
                 onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                autoFocus
               />
-            </div>
-          </form>
-        </div>
-
-        {showDropdown && searchResults.length > 0 && (
-          <div 
-            className="mx-3 mb-3 bg-white rounded-lg shadow-lg py-1 z-10 max-h-80 overflow-auto border border-gray-200"
-          >
-            {searchResults.slice(0, 5).map((user) => (
-              <div 
-                key={user._id} 
-                className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
-                onClick={() => handleUserClick(user.email)}
-              >
-                {user.profilePicture ? (
-                  <img 
-                    src={`data:image/jpeg;base64,${user.profilePicture}`} 
-                    alt={user.name} 
-                    className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
-                    <FaUserCircle className="h-6 w-6 text-blue-500" />
-                  </div>
-                )}
-                <div>
-                  <div className="font-medium text-gray-900">{user.name}</div>
-                  <div className="text-xs text-gray-500">{user.email}</div>
-                </div>
-              </div>
-            ))}
-            {searchResults.length > 5 && (
-              <div 
-                className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
-                onClick={handleSearchSubmit}
-              >
-                See all results
-              </div>
-            )}
+            </form>
           </div>
-        )}
-      </div>
 
-      {/* Mobile Menu - Slides in from left */}
+          {showDropdown && searchResults.length > 0 && (
+            <div className="mt-2 mx-1 bg-white rounded-lg shadow-lg py-1 z-10 max-h-80 overflow-auto border border-gray-200">
+              {searchResults.slice(0, 5).map((user) => (
+                <div 
+                  key={user._id} 
+                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center transition-colors"
+                  onClick={() => {
+                    handleUserClick(user.email);
+                    setShowMobileSearch(false);
+                  }}
+                >
+                  {user.profilePicture ? (
+                    <img 
+                      src={`data:image/jpeg;base64,${user.profilePicture}`} 
+                      alt={user.name} 
+                      className="h-10 w-10 rounded-full object-cover mr-3 border border-gray-200 shadow-sm"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 shadow-sm">
+                      <FaUserCircle className="h-6 w-6 text-blue-500" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-medium text-gray-900">{user.name}</div>
+                    <div className="text-xs text-gray-500">{user.email}</div>
+                  </div>
+                </div>
+              ))}
+              {searchResults.length > 5 && (
+                <div 
+                  className="px-4 py-2 text-center text-blue-600 text-sm font-medium border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors"
+                  onClick={() => {
+                    handleSearchSubmit({ preventDefault: () => {} });
+                    setShowMobileSearch(false);
+                  }}
+                >
+                  See all results
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <div 
         ref={mobileMenuRef}
         className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${
@@ -483,7 +459,6 @@ function Nav() {
         style={{ marginTop: '60px' }}
       >
         <div className="overflow-y-auto h-full pb-20">
-          {/* User Info - Show at top if available */}
           {userEmail && (
             <div className="p-4 border-b border-gray-200 bg-blue-50">
               <div className="flex items-center">
@@ -535,7 +510,6 @@ function Nav() {
               <span>Settings</span>
             </Link>
             
-            {/* Notifications Section */}
             <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="px-4 py-2 text-gray-800 font-medium">
                 Notifications
@@ -598,7 +572,6 @@ function Nav() {
           </div>
         </div>
         
-        {/* Fixed Logout Button at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <button
             onClick={handleLogout}
@@ -610,7 +583,6 @@ function Nav() {
         </div>
       </div>
 
-      {/* Mobile Notifications Panel - Shown when notifications are toggled */}
       {showNotifications && !mobileMenuOpen && (
         <div 
           className="md:hidden fixed top-0 right-0 bottom-0 w-full bg-white z-40 shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0"
@@ -684,7 +656,6 @@ function Nav() {
         </div>
       )}
 
-      {/* Overlay when mobile menu is open */}
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -693,7 +664,6 @@ function Nav() {
         />
       )}
       
-      {/* Overlay when notifications panel is open on mobile */}
       {showNotifications && !mobileMenuOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
